@@ -1,0 +1,122 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class FlappyBird extends JPanel implements ActionListener, KeyListener {
+
+    private int birdX = 100, birdY = 250, birdVelocity = 0, gravity = 1, score = 0;
+    private boolean isJumping = false, gameOver = false;
+    private ArrayList<Rectangle> pipes = new ArrayList<>();
+    private Timer timer;
+    private Random rand = new Random();
+
+    public FlappyBird() {
+        setPreferredSize(new Dimension(800, 600));
+        setBackground(Color.cyan);
+        setFocusable(true);
+        addKeyListener(this);
+        timer = new Timer(20, this);
+        timer.start();
+    }
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        drawBird(g);
+        drawPipes(g);
+        drawScore(g);
+        if (gameOver) drawGameOver(g);
+    }
+
+    private void drawBird(Graphics g) {
+        g.setColor(Color.yellow);
+        g.fillRect(birdX, birdY, 30, 30);
+    }
+
+    private void drawPipes(Graphics g) {
+        g.setColor(Color.green);
+        for (Rectangle pipe : pipes) {
+            g.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
+        }
+    }
+
+    private void drawScore(Graphics g) {
+        g.setColor(Color.white);
+        g.setFont(new Font("Arial", Font.BOLD, 40));
+        g.drawString("Score: " + score, 20, 50);
+    }
+
+    private void drawGameOver(Graphics g) {
+        g.setColor(Color.red);
+        g.setFont(new Font("Arial", Font.BOLD, 50));
+        g.drawString("Game Over", 250, 250);
+        g.setFont(new Font("Arial", Font.PLAIN, 30));
+        g.drawString("Press 'R' to Restart", 275, 300);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (gameOver) return;
+
+        birdVelocity += gravity;
+        birdY += birdVelocity;
+
+        if (birdY > 570 || birdY < 0) {
+            gameOver = true;
+        }
+
+        ArrayList<Rectangle> newPipes = new ArrayList<>();
+        for (Rectangle pipe : pipes) {
+            pipe.x -= 5;
+            if (pipe.x + pipe.width > 0) newPipes.add(pipe);
+            if (pipe.x == birdX) score++;
+        }
+
+        pipes = newPipes;
+
+        if (pipes.isEmpty() || pipes.get(pipes.size() - 1).x < 600) {
+            int space = 300;
+            int height = rand.nextInt(200) + 100;
+            pipes.add(new Rectangle(800, 0, 50, height));
+            pipes.add(new Rectangle(800, height + space, 50, 600 - height - space));
+        }
+
+        repaint();
+    }
+
+    public void keyPressed(KeyEvent e) {
+        if (gameOver && e.getKeyCode() == KeyEvent.VK_R) {
+            resetGame();
+        } else if (!gameOver && e.getKeyCode() == KeyEvent.VK_SPACE) {
+            jump();
+        }
+    }
+
+    public void keyReleased(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {}
+
+    private void jump() {
+        if (birdY > 0) {
+            birdVelocity = -15;
+            isJumping = true;
+        }
+    }
+
+    private void resetGame() {
+        birdY = 250;
+        birdVelocity = 0;
+        pipes.clear();
+        score = 0;
+        gameOver = false;
+        timer.restart();
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Flappy Bird");
+        FlappyBird game = new FlappyBird();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(game);
+        frame.pack();
+        frame.setVisible(true);
+    }
+}
