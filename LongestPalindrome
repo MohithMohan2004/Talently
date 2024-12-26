@@ -1,1 +1,22 @@
+import java.util.Arrays;
 
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        int[] map = new int[256]; // Array to store last seen indices
+        Arrays.fill(map, -1);
+        int length = 0, left = 0, right = 0, n = s.length();
+
+        while (right < n) {
+            // If the character has been seen, adjust the left pointer
+            if (map[s.charAt(right)] != -1) {
+                left = Math.max(map[s.charAt(right)] + 1, left);
+            }
+            // Update the last seen index
+            map[s.charAt(right)] = right;
+            // Calculate the length of the current window
+            length = Math.max(length, right - left + 1);
+            right++;
+        }
+        return length;
+    }
+}
